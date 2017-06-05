@@ -1,0 +1,45 @@
+{
+  "ProjectName": "Pick 2nd Scan",
+  "ProjectGuid": "0a47a43e-80a5-4d48-9b07-fbf4dd7bfcc0",
+  "projectVersion": 1,
+  "AppIdentifier": "com.telerik.Pick2ndScan",
+  "DisplayName": "Pick 2nd Scan",
+  "Author": "",
+  "Description": "Pick 2nd Scan",
+  "BundleVersion": "1.0",
+  "AndroidVersionCode": "1",
+  "iOSDeviceFamily": [
+    "1",
+    "2"
+  ],
+  "iOSBackgroundMode": [],
+  "ProjectTypeGuids": "{070BCB52-5A75-4F8C-A973-144AF0EAFCC9}",
+  "FrameworkVersion": "6.4.0",
+  "AndroidPermissions": [
+    "android.permission.INTERNET"
+  ],
+  "DeviceOrientations": [
+    "Portrait",
+    "Landscape"
+  ],
+  "AndroidHardwareAcceleration": "true",
+  "iOSStatusBarStyle": "Default",
+  "Framework": "Cordova",
+  "WP8TileTitle": "",
+  "WP8Publisher": "",
+  "WP8Capabilities": [
+    "ID_CAP_NETWORKING",
+    "ID_CAP_WEBBROWSERCOMPONENT"
+  ],
+  "WP8Requirements": [],
+  "WP8PublisherID": "{9af59789-8f68-4be7-8740-e1eef51130f4}",
+  "WP8ProductID": "{cb97c9d2-e1cd-4d00-9494-c69e82bef5b2}",
+  "WPSdk": "8.0",
+  "WP8PackageIdentityName": "1234Telerik.Pick2ndScan",
+  "WP8WindowsPublisherName": "CN=Telerik",
+  "WP8SupportedResolutions": [
+    "ID_RESOLUTION_WVGA",
+    "ID_RESOLUTION_WXGA",
+    "ID_RESOLUTION_HD720P"
+  ]
+}
