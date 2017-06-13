@@ -5,6 +5,10 @@
     "qrCodeScan": "Scan"
   },
   "home": {
-    "title": "Home View"
+    "title": "Pick 2nd Scan",
+    "homeModel": {
+      "submitButton": "Confirm",
+      "cancelButton": "Cancel"
+    }
   }
 }

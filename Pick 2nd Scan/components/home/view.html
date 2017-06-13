@@ -1,13 +1,427 @@
+<style>
+label{
+    display: inline-block;
+    float: left;
+    clear: left;
+    width: 200px;
+    text-align: right;
+    color: black;
+    
+}
+input {
+  display: inline-block;
+}
+
+</style>
 <div data-role="view" data-title="View" data-layout="main" data-model="app.home" data-show="app.home.onShow" data-after-show="app.home.afterShow" id="homeScreen" class="screen">
+    <div id="homeModel" class="form-view screen__content screen__content--form add-item-view">
+        <form>
+            <ul class="form-content" data-role="listview" data-style="inset">
+            </ul>
+            
+        <div id="scanlabels" style="display:inline;float:left;">
+            <br>
+            <label>Picking Slip:</label><input id="ppsnumber" type="text" autofocus>
+            <label>Customer:</label><input id="customer" type="text">
+            <label>Box Barcode:</label><input id="boxbarcode" type="text">
+            <label>Carton Number:</label><input id="carton" type="text">
+            <label>Picker ID:</label><input id="pickerid" type="text">
+            <label>Item Code:</label><input id="itemcode" type="text">
+            <br><br>
+        </div>
+        <div id="totalfieldslabels" style="display:inline;float:left;">
+            <br>
+            <label>Total Qty On Pps:</label><input style="background-color:#E5E7E9" id="totalqtyonpps" type="text" readonly>
+            <label>Total Qty Scanned on Box:</label><input style="background-color:#E5E7E9" id="totalqtyscanonbox" type="text" readonly>
+            <label>Total Qty Scanned on PPS:</label><input style="background-color:#E5E7E9" id="totalqtyscanonpps" type="text" readonly>
+            <br><br><br>
+            <input id="addpps" type="button" onClick="closebox2()" value="Add Pps">
+            <input id="closebox" type="button" onClick="closingbox()" value="Close Box">
+            <input id="openbox" type="button" onClick="closebox()" value="Open Box">
+            <input id="clearbox" type="button" onClick="clearingbox()" value="Clear Box">
+            <br>
+        </div>
+
+        </form>
+        <!-- START_CUSTOM_CODE_homeModel -->
+        <!-- Add custom code here. For more information about custom code, see http://docs.telerik.com/platform/screenbuilder/troubleshooting/how-to-keep-custom-code-changes -->
+
+        <!-- END_CUSTOM_CODE_homeModel -->
+    </div>
+   
     <header data-role="header">
         <div data-role="navbar" class="header-text">
-
             <span data-bind="text: strings.home.title"></span>
-
         </div>
     </header>
+    <br><br><br><br><br><br><br><br><br><br><br>
+    <div id="emptyspace"></div>
+    <div id="grid"></div>        
+    <script>
+        var ppselement;
+        var custelement;
+        var boxelement;
+        var cartonelement;
+        var pickerelement;
 
+        $(document).ready(function () {
 
+            $("#grid").kendoGrid({
+            columns: [
+                { field: "PpsNumber" },
+                { field: "BoxBarcode" },
+                { field: "ItemCode" },
+                { field: "Quantity" }
+            ]
+            });          
+
+            document.getElementById("closebox").disabled = true; 
+            ppselement = document.getElementById('ppsnumber');
+            custelement = document.getElementById('customer');
+            boxelement = document.getElementById('boxbarcode');
+            cartonelement = document.getElementById('carton');
+            pickerelement = document.getElementById('pickerid');
+
+            $('#ppsnumber').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    event.preventDefault();
+                    var getppsnumber = document.getElementById("ppsnumber").value
+                    if (getppsnumber == '') {
+                    } else {
+                        returnofpps();
+                    }
+                }
+            });
+            $('#boxbarcode').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    event.preventDefault();
+                    var getppsnumber = document.getElementById("boxbarcode").value
+                    if (getppsnumber == '') {
+                    } else {
+                        returnboxbarcode();
+                    }
+                }
+            });      
+            $('#itemcode').keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    event.preventDefault();
+                    var getppsnumber = document.getElementById("itemcode").value
+                    if (getppsnumber == '') {
+                    } else {
+                        returnitemcode();
+                    }
+                }
+            });           
+        });
+
+      function returnofpps() {
+            $.ajax({
+                method: "POST",
+                url: "http://spectre.int.syscom.plc.uk:8980/pickscanning/rest/pickscanning/enterpps",
+                //url: csite + "/mfgshipment/rest/mfgshipment/getcartondetails",
+                //url: "http://ned.eveden.local:8980/mfgshipment/rest/mfgshipment/login",
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                data: {
+                    "ArEntity": "EL",
+                    "PpsNumber": document.getElementById("ppsnumber").value
+                },
+                success: function (json) {
+                    console.log(json);
+                },
+                //async: false,
+                timeout: 5000,    
+                error: function (request, error) {
+                    if (error == "timeout") {
+                        //send request again
+                        alert("send again");
+                        $.ajax(this);
+                    } else {
+                        erroraudio.play();
+                        window.alert("Failed to reach server!");
+                        return false;
+                    }
+                }
+            })
+            .done(function (response) {
+                var cerror = "";
+                cerror = (response.ttPps[0].cError);
+
+                if(cerror != "") {
+                    alert(cerror);
+                }
+                else {
+                    document.getElementById("customer").value = (response.ttPps[0].Customer);
+                    document.getElementById("totalqtyonpps").value = (response.ttPps[0].TotalQty);
+                    document.getElementById("totalqtyscanonpps").value = (response.ttPps[0].TotalQtyPps);
+                    ppselement.style.background = '#E5E7E9';
+                    custelement.style.background = '#E5E7E9';    
+                    document.getElementById("boxbarcode").focus();           
+                    $("#ppsnumber").prop('readonly', true);     
+                    $("#customer").prop('readonly', true);
+                }
+            });
+      }
+
+      function returnboxbarcode() {
+            $.ajax({
+                method: "POST",
+                url: "http://spectre.int.syscom.plc.uk:8980/pickscanning/rest/pickscanning/enterbox",
+                //url: csite + "/mfgshipment/rest/mfgshipment/getcartondetails",
+                //url: "http://ned.eveden.local:8980/mfgshipment/rest/mfgshipment/login",
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                data: {
+                    "ArEntity": "EL",
+                    "PpsNumber": document.getElementById("ppsnumber").value,
+                    "BoxBarcode": document.getElementById("boxbarcode").value
+                },
+                success: function (json) {
+                    console.log(json);
+                },
+                //async: false,
+                timeout: 5000,    
+                error: function (request, error) {
+                    if (error == "timeout") {
+                        //send request again
+                        $.ajax(this);
+                    } else {
+                        erroraudio.play();
+                        window.alert("Failed to reach server!");
+                        return false;
+                    }
+                }
+            })
+            .done(function (response) {
+ 
+                var cerror3 = "";
+                cerror3 = (response.ttItem[0].cError);
+
+                if(cerror3 != "") {
+                    alert(cerror3);
+                }
+                else {
+                  var numrecs2 = (response.ttItem[0].Number);
+                   if(numrecs2 = "") {
+                    $("#grid").kendoGrid({
+                        columns: [
+                            { field: "PpsNumber" },
+                            { field: "BoxBarcode" },
+                            { field: "ItemCode" },
+                            { field: "Quantity" }
+                        ]
+                        });
+
+                        var data = [{
+                                PpsNumber: (response.ttItem[0].PpsNumber),
+                                BoxBarcode: (response.ttItem[0].BoxBarcode),
+                                ItemCode: (response.ttItem[0].ItemCode),
+                                Quantity: (response.ttItem[0].Qty)
+                            },
+                            ];
+
+                        var dataSource = new kendo.data.DataSource({
+                                data: data
+                            });
+    
+                        var grid = $("#grid").data("kendoGrid");
+                        grid.setDataSource(dataSource);
+
+                        for (i = 1; i < numrecs2; i++) {
+                            dataSource.insert(0,{ PpsNumber: (response.ttItem[i].PpsNumber),
+                                                BoxBarcode: (response.ttItem[i].BoxBarcode),
+                                                ItemCode: (response.ttItem[i].ItemCode),
+                                                Quantity: (response.ttItem[i].Qty)});   
+                        }
+                        
+                    }
+                        document.getElementById("totalqtyscanonbox").value = (response.ttItem[0].TotalScannedBox);
+                        boxelement.style.background = '#E5E7E9';
+                        document.getElementById("itemcode").focus(); 
+                        $("#boxbarcode").prop('readonly', true);
+                        document.getElementById("closebox").disabled = false;                 
+                    }
+                });      
+        }
+
+      function returnitemcode() {
+            $.ajax({
+                method: "POST",
+                url: "http://spectre.int.syscom.plc.uk:8980/pickscanning/rest/pickscanning/enteritem",
+                //url: csite + "/mfgshipment/rest/mfgshipment/getcartondetails",
+                //url: "http://ned.eveden.local:8980/mfgshipment/rest/mfgshipment/login",
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                data: {
+                    "ArEntity": "EL",
+                    "ItemCode": document.getElementById("itemcode").value,
+                    "PpsNumber": document.getElementById("ppsnumber").value,
+                    "BoxBarcode": document.getElementById("boxbarcode").value,
+                    "PickerId": document.getElementById("pickerid").value,
+                    "Carton": document.getElementById("carton").value
+                },
+                success: function (json) {
+                    console.log(json);
+                },
+                //async: false,
+                timeout: 5000,    
+                error: function (request, error) {
+                    if (error == "timeout") {
+                        //send request again
+                        alert("send item again");
+                        $.ajax(this);
+                    } else {
+                        erroraudio.play();
+                        window.alert("Failed to reach server!");
+                        return false;
+                    }
+                }
+            })
+            .done(function (response) {
+              
+                var cerror2 = "";
+                cerror2 = (response.ttItem[0].cError);
+
+                if(cerror2 != "") {
+                    alert(cerror2);
+                }
+                else {
+                    document.getElementById("itemcode").value = "";
+                    document.getElementById("closebox").disabled = false; 
+                    var numrecs = (response.ttItem[0].Number);
+
+                    $("#grid").kendoGrid({
+                    columns: [
+                        { field: "PpsNumber" },
+                        { field: "BoxBarcode" },
+                        { field: "ItemCode" },
+                        { field: "Quantity" }
+                    ]
+                    });
+
+                     var data = [{
+                            PpsNumber: (response.ttItem[0].PpsNumber),
+                            BoxBarcode: (response.ttItem[0].BoxBarcode),
+                            ItemCode: (response.ttItem[0].ItemCode),
+                            Quantity: (response.ttItem[0].Qty)
+                         },
+                         ];
+
+                    var dataSource = new kendo.data.DataSource({
+                            data: data
+                        });
+                   
+                    var grid = $("#grid").data("kendoGrid");
+                    grid.setDataSource(dataSource);
+
+                    for (i = 1; i < numrecs; i++) {
+                        dataSource.insert(0,{ PpsNumber: (response.ttItem[i].PpsNumber),
+                                            BoxBarcode: (response.ttItem[i].BoxBarcode),
+                                            ItemCode: (response.ttItem[i].ItemCode),
+                                            Quantity: (response.ttItem[i].Qty)});   
+                    }
+                  
+    
+
+                }
+            });
+      }
+
+   
+
+      function closingbox() {
+
+        $.ajax({
+                method: "POST",
+                url: "http://spectre.int.syscom.plc.uk:8980/pickscanning/rest/pickscanning/closebox",
+                //url: csite + "/mfgshipment/rest/mfgshipment/getcartondetails",
+                //url: "http://ned.eveden.local:8980/mfgshipment/rest/mfgshipment/login",
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                data: {
+                    "ArEntity": "EL",
+                    "BoxBarcode": document.getElementById("boxbarcode").value
+                },
+                success: function (json) {
+                    console.log(json);
+                },
+                //async: false,
+                timeout: 5000,    
+                error: function (request, error) {
+                    if (error == "timeout") {
+                        //send request again
+                        $.ajax(this);
+                    } else {
+                        erroraudio.play();
+                        window.alert("Failed to reach server!");
+                        return false;
+                    }
+                }
+            })
+            .done(function (response) {
+                clearscreen();
+            });        
+      }     
+
+      function clearingbox() {
+            $.ajax({
+                method: "POST",
+                url: "http://spectre.int.syscom.plc.uk:8980/pickscanning/rest/pickscanning/clearbox",
+                //url: csite + "/mfgshipment/rest/mfgshipment/getcartondetails",
+                //url: "http://ned.eveden.local:8980/mfgshipment/rest/mfgshipment/login",
+                headers: {
+                    "accept": "application/json",
+                    "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                data: {
+                    "ArEntity": "EL",
+                    "PpsNumber": document.getElementById("ppsnumber").value,
+                    "BoxBarcode": document.getElementById("boxbarcode").value
+                },
+                success: function (json) {
+                    console.log(json);
+                },
+                //async: false,
+                timeout: 5000,    
+                error: function (request, error) {
+                    if (error == "timeout") {
+                        //send request again
+                        $.ajax(this);
+                    } else {
+                        erroraudio.play();
+                        window.alert("Failed to reach server!");
+                        return false;
+                    }
+                }
+            })
+            .done(function (response) {
+                /*we need to see if it can be cleared*/
+                alert("done");
+                clearscreen();
+            });   
+      }
+
+     function clearscreen() {
+        document.getElementById("ppsnumber").value = "";
+        document.getElementById("boxbarcode").value = "";
+        document.getElementById("itemcode").value = "";
+        document.getElementById("customer").value = "";
+        document.getElementById("totalqtyonpps").value = "";      
+        $("#grid").empty();          
+    }
+
+    </script>
     <!-- START_CUSTOM_CODE_home -->
     <!-- Add custom code here. For more information about custom code, see http://docs.telerik.com/platform/screenbuilder/troubleshooting/how-to-keep-custom-code-changes -->
 
